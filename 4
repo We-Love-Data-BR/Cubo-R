@@ -1,0 +1,92 @@
+Vamos para a Parte 4 de Cubos OLAP e Solução de BI com Linguagem R!
+
+Nota: Não vou imprimir o resultado da execução do código aqui, pois perderá a formatação. Execute as linhas de código no RStudio na sua máquina e acompanhe minha explicação por aqui.
+
+Com o cubo criado, podemos agora aplicar Operações OLAP. Podemos pensar em Operações OLAP como perguntas que fazemos ao cubo. As operações são:
+
+Slice and Dice
+Roll-up
+Drill-down
+Pivot (rotate)
+
+Vamos começar com o Slice and Dice e na Parte 5 faremos as outras 3 operações e usaremos a interface gráfica.
+
+Slice and Dice é a operação de dividir e cortar um conjunto de dados em partes menores examinando assim os dados sob diferentes pontos de vista.
+
+O termo tem suas raízes na culinária e descreve dois tipos de habilidades que todo Chef precisa dominar: Fatiar e então picar em porções uniformes e menores. As duas ações são frequentemente executadas sequencialmente. Por exemplo, um Chef pode primeiro cortar uma cebola em fatias (Slice) e depois cortar as fatias em cubinhos (Dice). Na análise de dados, o termo geralmente implica uma redução sistemática de um corpo de dados em partes ou visualizações menores que renderão mais informações. O termo também é usado para significar a apresentação de informações de várias maneiras diferentes e úteis.
+
+Vamos coletar uma fatia do nosso cubo (criado na Parte 3). Imagine que nossa fatia deva ter todos os dados sobre o produto do tipo TV. Faríamos o slice assim:
+
+
+fatia1 = cubo_prod["TV",]
+print(fatia1)
+as.data.table(fatia1)
+
+
+Veja que usamos a notação de indexação (aquela que Daniel tanto fala nas aulas), para coletar uma porção dos dados, nesse caso referente ao produto TV. Isso parece familiar? Sim, pois o pacote Pandas em Python e data.table em R usam exatamente a mesma notação. A vantagem de usar o cubo é poder representar muitas dimensões de dados em uma única estrutura.
+
+Ao executar o código de slice e então a função print() você deve ter percebido que os dados não foram retornados, mas sim a estrutura da fatia resultante. Para visualizar os dados convertemos a fatia do cubo em um objeto data.table. Aqui está o código para os exemplos de Slice:
+
+
+# Slice (Fatiamento dos Dados)
+
+# Cria uma fatia
+fatia1 = cubo_prod["TV",]
+print(fatia1)
+as.data.table(fatia1)
+
+# Mostra a dimensão (por isso drop=FALSE)
+fatia2 = cubo_prod["TV",,,drop=FALSE]
+print(fatia2)
+as.data.table(fatia2)
+
+# Cria uma fatia usando duas dimensões
+fatia3 = cubo_prod["TV",,"Em Estoque"]
+print(fatia3)
+as.data.table(fatia3)
+
+
+Perceba que ao usarmos duas dimensões para fatiar os dados, deixamos duas vírgulas. Por quê? Isso indica que para as dimensões produto e status queremos 2 elementos (“TV” e “Em Estoque”), mas para a dimensão ano queremos todos os elementos.
+
+E é isso! Não temos que fazer mais nada, pois os valores são retornados de acordo com as fatias que criamos. Nosso trabalho é fazer perguntas ao cubo. Por exemplo:
+
+Qual o total de TVs em estoque no ano de 2016? Fácil: 21 (seu resultado pode ser diferente, pois a massa de dados foi criada de forma aleatória quando criamos o cubo). Aqui está o código:
+
+
+# Cria uma fatia com os totais de TV em estoque no ano de 2016
+fatia4 = cubo_prod["TV", 2016,"Em Estoque"]
+print(fatia4)
+as.data.table(fatia4)
+
+
+Respondemos a uma pergunta de BI: O que aconteceu? Resposta: Em 2016 havia 21 TVs em estoque. E se quiséssemos prever quantas TVs estarão em estoque em 2023? Usaríamos Machine Learning para construir um modelo preditivo. Poderíamos usar os mesmos dados, mas o método agora seria diferente, pois estaríamos olhando para o futuro. Por isso Analistas de BI e Cientista de Dados são profissões diferentes, pois empregam técnicas e ferramentas diferentes, ambas igualmente importantes. Mas diferentes!
+
+Os Cientistas de Dados estão em alta demanda pois podem empregar Data Science para extrair padrões dos dados e prever o que pode ocorrer no futuro. E com o Big Data essas previsões estão cada vez melhores.
+
+E o Dice?
+
+Vamos quebrar nossa fatia do produto TV em pedaços menores (assim como o Chef faz com a cebola..rs). Aqui está:
+
+
+dice1 = cubo_prod["TV",, c("Em Estoque", "Em Preparação Para Entrega", "Em Transporte")]
+print(dice1)
+as.data.table(dice1)
+
+
+Você está atento? Desligue o Facebook...rsrs. Observe o que fizemos. Na dimensão status colocamos um vetor de elementos, pois queremos os totais de TV com 3 status diferentes. A função c() cria um vetor em R, nesse caso um vetor de strings. Veja esse outro exemplo:
+
+
+dice2 = cubo_prod["TV", c(2016, 2017), c("Em Estoque", "Em Preparação Para Entrega", "Em Transporte")]
+print(dice2)
+as.data.table(dice2)
+
+
+Acrescentamos mais detalhes ao resultado, retornando os totais em 2 anos. Mais uma vez usamos um vetor em R.
+
+O curioso é que muitas pessoas acham R difícil. Mas se observar atentamente os comandos acima perceberá que não há qualquer dificuldade, principalmente se mantiver uma visão de negócios sobre os dados, sempre voltada a usar os dados para responder perguntas. A dificuldade ocorre quando se tenta decorar comandos sem a clara compreensão sobre o que está tentando se alcançar com cada comando. Ajuste seu mindset e verá as coisas ficando cada vez mais fáceis.
+
+Pratique o Slice and Dice criando diferentes fatias a partir do cubo que criamos.
+
+Estamos quase concluindo. Deixamos a cereja do bolo para a Parte 5.
+
+#dicas

@@ -1,0 +1,82 @@
+Estão prontos para a Parte 2 do “Curso Express” Cubos OLAP e Solução de BI com Linguagem R?
+
+Então vamos direto ao que interessa.
+
+Vamos começar preparando o ambiente de desenvolvimento e instalando os pacotes necessários e logo na sequência definiremos o Problema de Negócio (exatamente como ensinamos nos cursos da DSA).
+
+Para reproduzir o exemplo completo é necessário ter o interpretador da Linguagem R e o RStudio instalados na sua máquina. Os links estão abaixo (escolha a versão de acordo com seu sistema operacional):
+
+https://cran-r.c3sl.ufpr.br/
+
+https://rstudio.com/products/rstudio/download/
+
+Para instalar um dos pacotes precisamos de um compilador C/C++ (a Linguagem R foi desenvolvida nessas linguagens), pois a instalação é feita a partir do código fonte. O compilador a ser usado depende do seu SO:
+
+Usuários Windows:
+
+Instalem o RTools e certifiquem-se de na instalação marcar a opção de incluir o RTools no PATH. Link para download (usem a versão 3.5, pois a versão 4 ainda é experimental): https://cran.r-project.org/bin/windows/Rtools/
+
+Usuários MacOS:
+
+Instalem o XCode via Apple Store.
+
+Usuários Linux:
+
+Instalem o pacote gcc de acordo com a distribuição que estão usando.
+
+Com o ambiente pronto, vamos à instalação dos pacotes:
+
+O primeiro pacote a ser instalado é o data.cube. Esse pacote permite criar cubos, estruturas multidimensionais de dados. Mas a instalação desse pacote é ligeiramente diferente do padrão em R, pois o código do pacote está no gitlab.
+
+Abram o RStudio e criem um novo script R. E então digitem cada linha abaixo, selecionem a linha e cliquem em Run:
+
+# Cubos OLAP e Solução de BI com Linguagem R
+
+# Instala o pacote data.cube
+install.packages("data.cube", repos = paste0("https://", c("jangorecki.gitlab.io/data.cube", "cloud.r-project.org")))
+
+Feita a instalação do data.cube, precisaremos ainda de 2 outros pacotes:
+
+1- Pacote data.table – esse não é novidade para os alunos da DSA, pois ensinamos como usar o pacote para manipular dados em diversos cursos.
+
+Para instalar o pacote, execute essa linha:
+
+# Instala o pacote data.table
+install.packages("data.table")
+
+
+2- E precisaremos ainda de um terceiro pacote: rpivotTable. Esse pacote é fabuloso e oferece a função rpivotTable (), que recebe um cubo como entrada e cria uma interface gráfica para executar diversas operações OLAP nos dados, além da criação de relatórios e gráficos com os dados no cubo, as sumarizações e agregações. Mais detalhes sobre o pacote aqui:
+
+https://cran.r-project.org/web/packages/rpivotTable/index.html
+
+
+Para instalar o pacote, execute essa linha:
+
+# Instala o pacote rpivotTable
+install.packages("rpivotTable")
+
+Com os pacotes instalados, precisamos carregá-los na sessão R:
+
+# Carregando pacotes na sessão
+library(data.table)
+library(data.cube)
+library(rpivotTable)
+
+Temos então um pacote para manipular os dados (data.table), um pacote para criar o cubo, colocando os dados combinados em dimensões (data.cube) e um pacote para interagir com os dados no cubo de forma visual (rpivotTable). Essa combinação permite construir um sistema de BI bastante poderoso, como você vai comprovar nas próximas aulas, e executar as operações principais do OLAP:
+
+Roll-up
+Drill-down
+Slice and dice
+Pivot (rotate)
+
+Com o ambiente pronto e os pacotes instalados podemos então definir o problema de negócio no qual vamos trabalhar.
+
+Uma empresa gostaria de criar relatórios sobre status de produtos, desde a chegada no estoque até a venda final. O objetivo é visualizar detalhes dos dados por diferentes perspectivas e diferentes combinações. Por exemplo: total de produtos em estoque por ano, média de produtos em preparação para entrega por ano, total de produtos por status em cada ano (produtos em estoque, em preparação para entrega, em transporte, etc...). Isso permitirá que a empresa tome melhores decisões sobre sua cadeia de suprimentos (supply chain). Com base nos relatórios, a empresa pode decidir no futuro sobre adotar Blockchain, trazendo mais consistência e segurança para sua cadeia de suprimentos.
+
+Criaremos 3 dimensões de dados: produto, ano (tempo) e status. Escolhemos ano como o nível de granularidade para a dimensão tempo para simplificar. Mas lembre-se que quanto mais granular os dados, mais espaço em disco ocupado e mais tempo de processamento.
+
+Os dados que alimentam um cubo em geral são coletados de bancos de dados transacionais e para esse exemplo vamos gerar uma massa de dados correspondente às 3 dimensões citadas acima.
+
+Temos tudo que precisamos. Hora de começar a codificar! É o que faremos na Parte 3.
+
+#dicas

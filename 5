@@ -1,0 +1,136 @@
+Vamos concluir o Curso Expresso “Cubos OLAP e Solução de BI com Linguagem R” com a Parte 5.
+
+Antes de começar, uma breve revisão:
+
+OLAP é uma metodologia baseada em pesquisa (“query-based”) que suporta análise de dados em um ambiente multidimensional.
+
+Um processamento OLAP estrutura logicamente dados multidimensionais na forma de um cubo. O cubo pode apresentar várias dimensões que são subconjuntos de atributos.
+
+Quando o banco de dados está construído em OLAP, quer dizer que ele não é mais relacional, ou seja, não existe aumento ou diminuição na quantidade de dados, eles já estão em um formato cuja recuperação costuma ser mais rápida que em um banco de dados relacional. Porém, existem versões de OLAP, que vão desde ROLAP (com um motor relacional), MOLAP (com um motor multidimensional) e um intermediário HOLAP (Hybrid). O padrão OLAP é usado para construir um Data Warehouse.
+
+Obs: Aqui vale mencionar a diferença do Data Warehouse para o Data Lake, que causa tanta confusão. O DW é construído com base no padrão OLAP, tem estrutura muito bem definida e trabalha com dados estruturados. Um Data Lake é praticamente o oposto, sendo na verdade um repositório para dados não estruturados, não tendo um padrão de schema definido. Com o Data Lake estamos preocupados em coletar os dados e armazená-los e mais tarde na análise e processamento nos preocupamos em estruturar os dados.
+
+De volta para o padrão OLAP:
+
+Cada atributo em um cubo OLAP pode ter uma ou mais hierarquias conceituais associadas. Uma hierarquia conceitual define um mapeamento que permite que o atributo possa ser visualizado em diversos níveis de detalhe. Por exemplo: atributo de localidade, poderia ter a região como o nível mais alto, depois as cidades que compõe aquela região, e depois os endereços contidos naquela cidade.
+
+Operações suportadas no OLAP:
+
+1. Operação fatiar (“slice”) - seleciona dados de uma única dimensão de um cubo OLAP;
+
+2. Operação cortar um subcubo (“dice”) - extrai um subcubo do cubo original executando uma operação de seleção em duas ou mais dimensões;
+
+3. Operação de agregação (“roll-up”) - é a combinação de células de uma ou mais dimensões definidas num cubo. Uma forma de agregação usa o conceito de associação hierárquica com uma dimensão para atingir um nível maior de generalização;
+
+4. Operação de “drill-down” - é o reverso da agregação (“roll-up”), implica em examinar dados com algum nível maior de detalhe;
+
+5. Operação de rotação (“rotation”) - permite visualizar dados de uma nova perspectiva.
+
+As ferramentas de OLAP possuem uma interface ao usuário amigável e são capazes de mostrar os dados de diversas perspectivas, executar análises estatísticas básicas e fazer pesquisas sucessivas para menor e/ou maior nível de detalhe.
+
+Já vimos o Slice and Dice, vamos agora estudar as demais operações.
+
+
+##### Roll-Up e DrillDown #####
+
+
+Quando se acessa as informações de um banco de dados OLAP (ou seja, Multidimensional) é possível que ele tenha duas ou mais dimensões. Algumas destas dimensões podem ter hierarquias. As hierarquias mais altas são as informações agregadas das hierarquias mais baixas.
+
+Por exemplo: um lado da dimensão pode ser construído com informações da localização de clientes. Neste caso, Brasil seria a hierarquia mais alta. Ao aplicar um Drill-down, esta hierarquia poderá se dividir de várias formas, como por exemplo regiões (Norte, Sul, Sudeste etc.) ou estados (SP, RJ etc.). Quão mais baixo você desce no detalhamento das informações, mais aumenta a chance de você encontrar células sem medidas da mesma forma que a informação se torna detalhada.
+
+Quanto ao Roll-Up, pode-se pensar na dimensão produto pois fica mais fácil de compreender. Você pode estar organizando o banco de dados de uma loja de varejo com vários produtos. Portanto cada produto seria a célula mais baixa da hierarquia desta dimensão. Desta forma, ao aplicar a agregação das vendas de determinado grupo de produtos (Liquificador -> Produtos de Cozinha -> Eletrodomésticos, por exemplo), a complicação existente neste ponto é o fato de a informação não estar padronizada entre os produtos, por exemplo, o que irá exigir alguma forma de transformação dos dados.
+
+Na prática, Roll-Up e DrillDown são operações complementares usadas em conjunto. Agregamos os dados (Roll-Up) e nos movemos pela hierarquia para buscar totais por diferentes níveis (DrillDown).
+
+Imagine que seu gerente queira ver o total de produtos por ano, independente do status. Como poderíamos extrair essa informação do nosso cubo? Que tal isso:
+
+
+format(capply(cubo_prod, c("produto", "ano"), sum))
+
+
+Se você fez um dos cursos de R aqui na DSA já conhece muito bem as funções da família apply(), que basicamente nos permite aplicar uma função a um conjunto de elementos. O pacote data.cube possui sua própria função apply, chamada capply (cube apply).
+
+No exemplo acima, aplicamos a função sum() para calcular a soma de todos os valores da junção entre elementos de duas dimensões, produto e ano e formatamos a saída. Pronto! Pergunta de negócio respondida.
+
+Mas podemos alcançar o mesmo resultado do código anterior usando outra função oferecida pelo pacote data.cube, a função rollup. Veja como fica:
+
+
+roll1 = rollup(cubo_prod, MARGIN = c("produto", "ano"), FUN = sum)
+format(roll1)
+
+
+A sintaxe é quase a mesma da função capply(). Mas quando executar o código no seu RStudio você vai perceber uma coluna adicional. A função rollup mostra ainda o nível de cada elemento, definindo assim os níveis em que ocorreu a agregação! Tem ferramenta de BI por aí que não consegue fazer isso!
+
+Seu gerente acabou de retornar de uma reunião com a área de negócio e precisa agora de uma informação urgente: qual foi a média de produtos com status “Em Estoque” no ano de 2018? Agora que você sabe como fazer BI com Linguagem R fica fácil, a resposta é 68 para os dados em nosso cubo. Chegamos ao resultado com o comando abaixo:
+
+
+roll2 = rollup(cubo_prod, MARGIN = c("ano", "status"), FUN = mean)
+format(roll2)
+
+
+Seu gerente recebeu uma chamada da área de negócio que precisa urgentemente saber qual ano teve o maior número de produtos processados pela empresa? E agora, como resolvemos essa? Bom, a resposta é 2017. Aqui o código que permite obter essa informação:
+
+
+roll3 = rollup(cubo_prod, MARGIN = c("ano","status"), INDEX = 1:1, FUN = sum)
+format(roll3)
+
+
+A única diferença aqui é usar o parâmetro INDEX, especificando o número de níveis em que queremos a agregação, ou seja, qual o nível de detalhamento desejado.
+
+
+##### Pivot #####
+
+
+Por último fazemos o Pivot. Transformamos linhas em colunas e vice-versa.
+
+
+roll4 = capply(cubo_prod, c("ano","produto"), sum)
+format(roll4, dcast = TRUE, formula = ano ~ produto)
+
+
+A função capply() calcula os somatórios e formatamos a saída par amostrar o resultado na tela. Qualquer ferramenta básica de BI aplica o Pivot sem dificuldade. Conseguimos fazer o Pivot até no Excel.
+
+
+##### Interface Gráfica #####
+
+
+E finalmente, a cereja do bolo!
+
+E se fosse possível fazer o mesmo que fizemos com as Operações OLAP através de código R, usando somente o mouse, como diversas ferramentas de BI? Temos um pacotinho para isso: rpivotTable
+
+Esse pacote pode ser usado com qualquer tipo de dado, desde que o dataset esteja no formato de dataframe, data.table ou cubo!
+
+Por exemplo: Podemos executar as Operações OLAP no famoso dataset Titanic, assim:
+
+
+rpivotTable(Titanic)
+
+
+E então usamos o mouse para selecionar o tipo de gráfico e a estatística que desejamos para análise. Um verdadeiro Sistema de BI. E se quiser deixar ainda mais bonito, você pode colocar o Painel do rpivotTable no Shinny e publicar na web! Campeão.
+
+Mas como criamos um rpivotTable para nosso cubo? Assim:
+
+
+library(rpivotTable)
+roll5 = rollup(cubo_prod, c("ano", "status"), FUN = sum, normalize = FALSE)
+rpivotTable(roll5, rows = "ano", cols = c("status"), width = "150%", height = "500px")
+
+
+Executamos Roll-up no cubo, extraindo os dados que nos interessam e passamos o objeto resultante como parâmetro para a função rpivotTable, especificando a dimensão na linha e a dimensão na coluna, além do tamanho no painel. O resultado pode ser este que você vê na imagem abaixo.
+
+Depois é só navegar pela interface, escolhendo entre gráficos e tabelas e as estatísticas desejadas para análise. O rpivotTable cria a interface usando JavaScript.
+
+Experimente o rpivotTable com outros conjuntos de dados. Talvez sua relação com a Linguagem R nunca mais seja a mesma e talvez seja muito melhor!
+
+E com isso chegamos ao fim desse Curso Expresso de 5 sessões! O script R completo pode ser baixado neste link do Google Drive:
+
+https://drive.google.com/open?id=1HaO8GlFTMxh2y1ykvgaj8XhGm41Bj9Tt
+
+Lembre-se que conforme Daniel explica em diversas aulas, mesmo se um pacote não receber mais atualizações dos seus autores, ainda pode ser usado normalmente e você pode modificar o código fonte se desejar. Uma alternativa ao data.cube é o pacote olapR, que embora tenha o mesmo conceito é um pouco mais complexo. Aqui você encontra mais detalhes:
+
+https://docs.microsoft.com/en-us/machine-learning-server/r-reference/olapr/olapr
+
+
+O Mentor Digital DSA volta na segunda-feira com novas dicas!
+
+#dicas

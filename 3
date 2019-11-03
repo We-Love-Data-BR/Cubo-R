@@ -1,0 +1,99 @@
+Vamos para a Parte 3 de Cubos OLAP e Solução de BI com Linguagem R!
+
+Nesse ponto, você deve ter um script R no RStudio com as seguintes linhas:
+
+# Cubos OLAP e Solução de BI com Linguagem R
+
+# Instala o pacote data.cube
+install.packages("data.cube", repos = paste0("https://", c("jangorecki.gitlab.io/data.cube", "cloud.r-project.org")))
+
+# Instala o pacote data.table
+install.packages("data.table")
+
+# Instala o pacote rpivotTable
+install.packages("rpivotTable")
+
+# Carregando pacotes na sessão
+library(data.table)
+library(data.cube)
+library(rpivotTable)
+
+
+Continuamos então a criação do script:
+
+
+##### Criando um array com a massa de dados #####
+
+
+No próximo passo criaremos uma massa de dados de exemplo com 3 dimensões que atendem a nosso problema de negócio definido na Parte 2.
+
+As dimensões definem os tipos de dados que queremos analisar. Crie as dimensões conforme abaixo, com uma lista em R:
+
+
+# Definindo o nome das dimensões
+# Produto: representa o tipo de produto
+# Ano: representa o ano em que os dados foram coletados
+# Status: representa o status de cada tipo de produto
+nomes_dimensoes = list(produto = sort(c("TV", "Geladeira", "Laptop", "Smartphone")), ano = as.character(2015:2019), status = sort(c("Em Estoque", "Em Preparação Para Entrega", "Em Transporte", "Devolvido")))
+
+
+A função c() usada acima cria um vetor de valores em Linguagem R.
+
+Agora, coletamos o comprimento de cada dimensão. Nesse exemplo é claro que já sabemos o comprimento, mas em conjuntos de dados maiores, isso faria toda diferença, automatizando seu código (programação em ação):
+
+
+# Definindo o comprimento das dimensões
+comprimento_dimensoes = sapply(nomes_dimensoes, length)
+
+
+A função sapply() aplica a função length() a cada elemento do array, extraindo assim o comprimento de cada um.
+
+Por fim, criamos uma massa de dados representando as quantidades, o que em BI chamamos de Fatos. Cada fato representa a combinação entre as dimensões, por exemplo: O Fato 42 pode significar: 42 produtos do tipo TV foram devolvidos em 2017. Os fatos são coletados de sistemas transacionais.
+
+Usaremos a função sample() para gerar uma massa de dados aleatória, usando como tamanho de amostra o mesmo tamanho do comprimento das dimensões.
+
+Por fim, visualizamos os dados com a função View().
+
+
+# Criando o array com alguns dados aleatórios usando a função sample()
+# Incluímos alguns valores NA (Not Available) para deixar as coisas mais emocionantes!
+set.seed(142)
+df_produtos = array(sample(c(rep(NA, 5), 15:190/2), prod(comprimento_dimensoes), TRUE),
+unname(comprimento_dimensoes),
+nomes_dimensoes)
+
+# Visualizando os dados
+View(df_produtos)
+
+
+##### Criando o Cubo #####
+
+
+A criação do cubo é super simples. Usamos a função as.cube() do pacote data.cube para transformar o array criado anteriormente em um Cubo OLAP. Execute o código abaixo e leia os comentários.
+
+
+# Cria o cubo a partir do array anterior
+cubo_prod = as.cube(df_produtos)
+
+# Veja que agora temos um objeto do tipo cubo
+class(cubo_prod)
+
+# Imprimindo o cubo
+# Observe que temos dimensões e fatos
+print(cubo_prod)
+
+# Observe agora os tipos de dados
+# Cada dimensão é tratada como um data.table, o que nos permite fazer diversas operações com os dados
+str(cubo_prod)
+
+# Usando a função all.equal() podemos comparar o array com o cubo
+# As dimensões são as mesmas, mas com o objeto do tipo cubo teremos diversas opções de operações OLAP
+all.equal(dim(df_produtos), dim(cubo_prod))
+all.equal(dimnames(df_produtos), dimnames(cubo_prod))
+
+
+E pronto, temos um cubo criado de forma muito (muito) similar a algumas das principais aplicações de BI do mercado! A massa de dados que criamos como um array, poderia ter dados carregados de um arquivo csv ou coletados diretamente de bancos relacionais, pois conforme mostramos nos cursos, conseguimos conectar diretamente em bancos relacionais com a Linguagem R. Poderíamos ainda criar o cubo em R com a mesma estrutura do cubo em outras ferramentas, carregar os dados e usar R para analisar os dados e gerar relatórios de forma open-source.
+
+Na Parte 4 vamos executar as operações OLAP no Cubo e na Parte 5 usaremos a interface gráfica.
+
+#dicas
